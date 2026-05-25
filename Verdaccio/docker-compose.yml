@@ -1,0 +1,39 @@
+version: '3.8'
+
+networks:
+  registry:
+    driver: bridge
+
+volumes:
+  verdaccio_storage:
+  verdaccio_conf:
+  verdaccio_plugins:
+
+services:
+
+  verdaccio:
+    image: verdaccio/verdaccio:latest
+    container_name: verdaccio
+    restart: unless-stopped
+    ports:
+      - "4873:4873"
+    volumes:
+      - verdaccio_storage:/verdaccio/storage
+      - verdaccio_conf:/verdaccio/conf
+      - verdaccio_plugins:/verdaccio/plugins
+    environment:
+      - VERDACCIO_PORT=4873
+      - TZ=America/Sao_Paulo
+    networks:
+      - registry
+    healthcheck:
+      test: ["CMD", "wget", "-qO-", "http://localhost:4873/-/ping"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 15s
+    deploy:
+      resources:
+        limits:
+          cpus: '0.25'
+          memory: 256M
