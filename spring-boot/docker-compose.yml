@@ -1,0 +1,38 @@
+version: '3.8'
+
+networks:
+  app:
+    driver: bridge
+
+volumes:
+  app_logs:
+
+services:
+
+  spring-boot:
+    image: openjdk:11-jre-slim
+    container_name: spring-boot
+    restart: unless-stopped
+    ports:
+      - "8080:8080"
+    volumes:
+      - ./app:/app
+      - app_logs:/app/logs
+    working_dir: /app
+    command: ["java", "-jar", "-Xms256m", "-Xmx512m", "application.jar"]
+    environment:
+      - SPRING_PROFILES_ACTIVE=production
+      - TZ=America/Sao_Paulo
+    networks:
+      - app
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:8080/actuator/health"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 60s
+    deploy:
+      resources:
+        limits:
+          cpus: '1.0'
+          memory: 768M
