@@ -1,0 +1,38 @@
+version: '3.8'
+
+networks:
+  app:
+    driver: bridge
+
+volumes:
+  tomcat_logs:
+  tomcat_webapps:
+
+services:
+
+  tomcat:
+    image: tomcat:9-jdk11-openjdk-slim
+    container_name: tomcat
+    restart: unless-stopped
+    ports:
+      - "8080:8080"
+    volumes:
+      - tomcat_webapps:/usr/local/tomcat/webapps
+      - tomcat_logs:/usr/local/tomcat/logs
+      - ./config/server.xml:/usr/local/tomcat/conf/server.xml:ro
+    environment:
+      - JAVA_OPTS=-Xms256m -Xmx512m -XX:+UseG1GC
+      - TZ=America/Sao_Paulo
+    networks:
+      - app
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:8080/"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 60s
+    deploy:
+      resources:
+        limits:
+          cpus: '1.0'
+          memory: 768M
